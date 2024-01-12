@@ -25,11 +25,11 @@ function LeftSidebar() {
 
         <li className="mb-2 font-semibold text-xl">
           <Link to={'/app/welcome'}>
-            {/* <img
+            <img
               className="mask mask-squircle w-10"
               src="/system_logo.jpg"
               alt="Logo"
-            /> */}
+            />
             Amulet
           </Link>{' '}
         </li>
