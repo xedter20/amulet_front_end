@@ -6,11 +6,11 @@ function LandingIntro() {
       <div className="hero-content py-12">
         <div className="max-w-md">
           <h1 className="text-3xl text-center font-bold ">
-            <img
+            {/* <img
               src="/system_logo.jpg"
               className="w-12 inline-block mr-2 mask mask-circle"
               alt="dashwind-logo"
-            />
+            /> */}
             DashWind
           </h1>
 
