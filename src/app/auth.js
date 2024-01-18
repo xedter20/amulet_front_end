@@ -4,6 +4,7 @@ const checkAuth = () => {
   /*  Getting token value stored in localstorage, if token is not present we will open login page 
     for all internal dashboard routes  */
   const TOKEN = localStorage.getItem('token');
+
   const PUBLIC_ROUTES = [
     'login',
     'forgot-password',

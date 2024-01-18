@@ -40,10 +40,10 @@ function ProfileSettings(props) {
   const [isLoading, setIsLoading] = useState(true);
 
   const amulet_packageSelection = [
-    {
-      label: 'SGEP 8 Package',
-      value: 'sgep_8'
-    },
+    // {
+    //   label: 'SGEP 8 Package',
+    //   value: 'sgep_8'
+    // },
     {
       label: 'SGEP 10 Package',
       value: 'sgep_10'

@@ -76,7 +76,7 @@ const renderNodeWithCustomEvents = ({
           {/* <hr /> */}
 
           <h6 className="text-xs font-bold text-gray-800 text-center h6">
-            Total Match: {matchCount}
+            Total Points:
           </h6>
         </div>
         {/* <div style={{ border: '1px solid black', backgroundColor: '#dedede' }}>
@@ -119,6 +119,8 @@ function InternalPage() {
   const [treeStucture, setTreeStucture] = useState({});
   const [isLoaded, setIsLoaded] = useState(false);
   const [users, setUser] = useState([]);
+  let userDetails = JSON.parse(localStorage.getItem('loggedInUser'));
+
   const [availablePosition, setAvailablePosition] = useState([
     { value: 'LEFT', label: 'Left' },
     { value: 'RIGHT', label: 'Right' }
@@ -169,6 +171,57 @@ function InternalPage() {
   };
   useEffect(() => {
     fetchUsers();
+  }, []);
+
+  const [networkNode, setNetworkNode] = useState([]);
+  const getNetworkNode = async () => {
+    let res = await axios({
+      method: 'POST',
+      url: 'user/getNetworkNodeList'
+    });
+
+    let list = res.data.data;
+
+    setNetworkNode(list);
+    // setIsLoaded(true);
+  };
+  useEffect(() => {
+    getNetworkNode();
+  }, []);
+
+  const [leftFLoaterData, setLeftFLoaterData] = useState([]);
+  const fetchFloaterData = async () => {
+    let res = await axios({
+      method: 'POST',
+      url: 'user/listFloaterData',
+      data: {
+        floaterPosition: 'LEFT'
+      }
+    });
+
+    let list = res.data.data;
+
+    setLeftFLoaterData(list);
+  };
+
+  const [rightFLoaterData, setRightFLoaterData] = useState([]);
+  const fetchRightFloaterData = async () => {
+    let res = await axios({
+      method: 'POST',
+      url: 'user/listFloaterData',
+      data: {
+        floaterPosition: 'RIGHT'
+      }
+    });
+
+    let list = res.data.data;
+
+    setRightFLoaterData(list);
+  };
+
+  useEffect(() => {
+    fetchFloaterData();
+    fetchRightFloaterData();
   }, []);
 
   const handleNodeClick = nodeDatum => {
@@ -223,6 +276,7 @@ function InternalPage() {
         // reload
         getTreeStructure();
         fetchUsers();
+        getNetworkNode();
       } catch (error) {
         toast.error('Something went wrong', {
           position: 'top-right',
@@ -260,7 +314,6 @@ function InternalPage() {
         ID
       }
     });
-    console.log(ID);
   };
   return (
     <Formik {...formikConfig}>
@@ -280,6 +333,160 @@ function InternalPage() {
       }) => {
         return (
           <div ref={treeContainerRef} style={{ height: '100vh' }}>
+            <div className="overflow-x-auto">
+              {isLoaded && (
+                <div>
+                  <div className="grid grid-cols-3 gap-4 md:grid-cols-3 ">
+                    <div className="bg-white shadow-lg overflow-x-auto">
+                      <h6 className="text-md font-bold leading-tight tracking-tight text-gray-700 dark:text-white m-2">
+                        Network
+                      </h6>
+                      <table className="table table-xs">
+                        {/* head */}
+                        <thead>
+                          <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Points</th>
+                            {/* <th>Date/Time Added</th> */}
+
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {networkNode.map((node, index) => {
+                            let fullName = `${node.childDetails.firstName} ${node.childDetails.lastName}`;
+
+                            let previousNode = networkNode[index - 1];
+
+                            let data = JSON.parse(node.list_ParentsOfParents);
+
+                            // console.log({ node });
+
+                            console.log(`${userDetails.userId} - ${fullName}`);
+                            console.log({ list_ParentsOfParents: data });
+
+                            let foundData = {};
+
+                            let isDirectParent =
+                              node.parentID === userDetails.userId;
+
+                            if (isDirectParent) {
+                              foundData = {
+                                position: node.position
+                              };
+                            } else {
+                              foundData = data.find(user => {
+                                return user.ID === userDetails.userId;
+                              });
+                            }
+
+                            let isButtonDisabled =
+                              foundData &&
+                              foundData.isViewed &&
+                              foundData.date_viewed;
+
+                            return (
+                              <tr>
+                                <th></th>
+                                <th>{fullName}</th>
+                                <th>{foundData && foundData.position}</th>
+                                <th>{node.points.low}</th>
+
+                                <th>
+                                  <button
+                                    // disabled={isButtonDisabled}
+                                    className="btn btn-outline btn-sm ml-2 btn-success"
+                                    onClick={async () => {
+                                      let res = await axios({
+                                        method: 'POST',
+                                        url: 'user/createFloater',
+                                        data: {
+                                          ID: node.ID
+                                        }
+                                      });
+                                      await getNetworkNode();
+                                      await fetchFloaterData();
+                                    }}>
+                                    Receive
+                                    {/* <CheckCircleIcon className="h-5 w-5 text-green-500" /> */}
+                                  </button>
+                                </th>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="bg-white shadow-lg overflow-x-auto">
+                      <h6 className="text-md font-bold leading-tight tracking-tight text-gray-700 dark:text-white m-2">
+                        Left Floater
+                      </h6>
+                      <table className="table table-xs">
+                        {/* head */}
+                        <thead>
+                          <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Points</th>
+                            <th>Action</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {leftFLoaterData.map(
+                            ({ status, points, action_type, fromUser }) => {
+                              let fullName = `${fromUser.firstName} ${fromUser.lastName}`;
+                              return (
+                                <tr>
+                                  <th></th>
+                                  <th>{fullName}</th>
+                                  <th>{points.low}</th>
+                                  <th>{action_type}</th>
+                                  <th>{status ? 'TRUE' : 'FALSE'}</th>
+                                </tr>
+                              );
+                            }
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="bg-white shadow-lg overflow-x-auto">
+                      <h6 className="text-md font-bold leading-tight tracking-tight text-gray-700 dark:text-white m-2">
+                        Right Floater
+                      </h6>
+                      <table className="table table-xs">
+                        {/* head */}
+                        <thead>
+                          <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Points</th>
+                            <th>Action</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        {rightFLoaterData.map(
+                          ({ status, points, action_type, fromUser }) => {
+                            let fullName = `${fromUser.firstName} ${fromUser.lastName}`;
+                            return (
+                              <tr>
+                                <th></th>
+                                <th>{fullName}</th>
+                                <th>{points.low}</th>
+                                <th>{action_type}</th>
+                                <th>{status ? 'TRUE' : 'FALSE'}</th>
+                              </tr>
+                            );
+                          }
+                        )}
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             {isLoaded && (
               <Tree
                 rootNodeClassName="node__root"

@@ -118,20 +118,20 @@ function Login() {
   }, []);
 
   const amulet_packageSelection = [
+    // {
+    //   label: 'SGEP 8 Package',
+    //   value: 'sgep_8'
+    // },
     {
-      label: 'SGEP 8 Package',
-      value: 'sgep_8'
-    },
-    {
-      label: 'SGEP 10 Package',
+      label: 'SGEP 10 Package (Php 10,000)',
       value: 'sgep_10'
     },
     {
-      label: 'SGEP 50 Package',
+      label: 'SGEP 50 Package (Php 50,000)',
       value: 'sgep_50'
     },
     {
-      label: 'SGEP 100 Package',
+      label: 'SGEP 100 Package (Php 100,000)',
       value: 'sgep_100'
     }
   ];

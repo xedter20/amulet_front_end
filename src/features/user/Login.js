@@ -58,9 +58,10 @@ function Login() {
         });
 
         let { token } = res.data;
-        let { role, id, email } = res.data.data;
+        let user = res.data.data;
 
         localStorage.setItem('token', token);
+        localStorage.setItem('loggedInUser', JSON.stringify(user));
 
         window.location.href = '/app/dashboard';
       } catch (error) {
