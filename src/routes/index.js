@@ -13,7 +13,7 @@ const Integration = lazy(() => import('../pages/protected/Integration'));
 const Calendar = lazy(() => import('../pages/protected/Calendar'));
 const Team = lazy(() => import('../pages/protected/Team'));
 const Transactions = lazy(() => import('../pages/protected/Transactions'));
-const Bills = lazy(() => import('../pages/protected/Bills'));
+const CodeGenerator = lazy(() => import('../pages/protected/CodeGenerator'));
 const ProfileSettings = lazy(() =>
   import('../pages/protected/ProfileSettings')
 );
@@ -91,6 +91,10 @@ if (token) {
     {
       path: '/blank',
       component: Blank
+    },
+    {
+      path: '/code_generator',
+      component: CodeGenerator
     }
   ];
 } else {

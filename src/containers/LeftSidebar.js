@@ -16,22 +16,21 @@ function LeftSidebar() {
   return (
     <div className="drawer-side  z-30  ">
       <label htmlFor="left-sidebar-drawer" className="drawer-overlay"></label>
-      <ul className="menu  pt-2 w-80 bg-base-100 min-h-full   text-base-content">
+      <ul className="menu  pt-2 w-50 bg-base-100 min-h-full   text-base-content">
         <button
           className="btn btn-ghost bg-base-300  btn-circle z-50 top-0 right-0 mt-4 mr-2 absolute lg:hidden"
           onClick={() => close()}>
           <XMarkIcon className="h-5 inline-block w-5" />
         </button>
 
-        <li className="mb-2 font-semibold text-xl">
+        <li className="flex items-center justify-between">
           <Link to={'/app/welcome'}>
             <img
-              className="mask mask-squircle w-10"
+              className="mask mask-squircle w-14 "
               src="/system_logo.jpg"
               alt="Logo"
             />
-            Amulet
-          </Link>{' '}
+          </Link>
         </li>
         {routes.map((route, k) => {
           return (

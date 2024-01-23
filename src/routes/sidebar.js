@@ -1,8 +1,9 @@
 /** Icons are imported separatly to reduce build time */
 import checkAuth from '../app/auth';
 import Squares2X2Icon from '@heroicons/react/24/outline/Squares2X2Icon';
-
+import QrCodeIcon from '@heroicons/react/24/outline/QrCodeIcon';
 import UsersIcon from '@heroicons/react/24/outline/UsersIcon';
+import PresentationChartLineIcon from '@heroicons/react/24/outline/PresentationChartLineIcon';
 const iconClasses = `h-6 w-6`;
 const submenuIconClasses = `h-5 w-5`;
 
@@ -24,8 +25,13 @@ if (token) {
     },
     {
       path: '/app/network_tree',
-      icon: <Squares2X2Icon className={iconClasses} />,
+      icon: <PresentationChartLineIcon className={iconClasses} />,
       name: 'Network Tree'
+    },
+    {
+      path: '/app/code_generator',
+      icon: <QrCodeIcon className={iconClasses} />,
+      name: 'Code Generator'
     }
   ];
 } else {

@@ -14,6 +14,8 @@ import './customTree.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import TitleCard from '../../components/Cards/TitleCard';
+
 const renderNodeWithCustomEvents = ({
   nodeDatum,
   toggleNode,
@@ -333,141 +335,106 @@ function InternalPage() {
       }) => {
         return (
           <div ref={treeContainerRef} style={{ height: '100vh' }}>
-            <div className="overflow-x-auto">
+            <div className="">
               {isLoaded && (
-                <div>
-                  <div className="grid grid-cols-3 gap-4 md:grid-cols-3 ">
-                    <div className="bg-white shadow-lg overflow-x-auto">
-                      <h6 className="text-md font-bold leading-tight tracking-tight text-gray-700 dark:text-white m-2">
-                        Network
-                      </h6>
-                      <table className="table table-xs">
-                        {/* head */}
-                        <thead>
-                          <tr>
-                            <th></th>
-                            <th>Name</th>
-                            <th>Position</th>
-                            <th>Points</th>
-                            {/* <th>Date/Time Added</th> */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <TitleCard key={'key'} title={'Network'} topMargin={'mt-2'}>
+                    <table className="table table-xs">
+                      {/* head */}
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Name</th>
+                          <th>Position</th>
+                          <th>Points</th>
+                          {/* <th>Date/Time Added</th> */}
 
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {networkNode.map((node, index) => {
-                            let fullName = `${node.childDetails.firstName} ${node.childDetails.lastName}`;
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {networkNode.map((node, index) => {
+                          let fullName = `${node.childDetails.firstName} ${node.childDetails.lastName}`;
 
-                            let previousNode = networkNode[index - 1];
+                          let previousNode = networkNode[index - 1];
 
-                            let data = JSON.parse(node.list_ParentsOfParents);
+                          let data = JSON.parse(node.list_ParentsOfParents);
 
-                            // console.log({ node });
+                          // console.log({ node });
 
-                            console.log(`${userDetails.userId} - ${fullName}`);
-                            console.log({ list_ParentsOfParents: data });
+                          console.log(`${userDetails.userId} - ${fullName}`);
+                          console.log({ list_ParentsOfParents: data });
 
-                            let foundData = {};
+                          let foundData = {};
 
-                            let isDirectParent =
-                              node.parentID === userDetails.userId;
+                          let isDirectParent =
+                            node.parentID === userDetails.userId;
 
-                            if (isDirectParent) {
-                              foundData = {
-                                position: node.position
-                              };
-                            } else {
-                              foundData = data.find(user => {
-                                return user.ID === userDetails.userId;
-                              });
-                            }
+                          if (isDirectParent) {
+                            foundData = {
+                              position: node.position
+                            };
+                          } else {
+                            foundData = data.find(user => {
+                              return user.ID === userDetails.userId;
+                            });
+                          }
 
-                            let isButtonDisabled =
-                              foundData &&
-                              foundData.isViewed &&
-                              foundData.date_viewed;
+                          let isButtonDisabled =
+                            foundData &&
+                            foundData.isViewed &&
+                            foundData.date_viewed;
 
-                            return (
-                              <tr>
-                                <th></th>
-                                <th>{fullName}</th>
-                                <th>{foundData && foundData.position}</th>
-                                <th>{node.points.low}</th>
+                          return (
+                            <tr>
+                              <th></th>
+                              <th>{fullName}</th>
+                              <th>{foundData && foundData.position}</th>
+                              <th>{node.points.low}</th>
 
-                                <th>
-                                  <button
-                                    // disabled={isButtonDisabled}
-                                    className="btn btn-outline btn-sm ml-2 btn-success"
-                                    onClick={async () => {
-                                      let res = await axios({
-                                        method: 'POST',
-                                        url: 'user/createFloater',
-                                        data: {
-                                          ID: node.ID
-                                        }
-                                      });
-                                      await getNetworkNode();
-                                      await fetchFloaterData();
-                                    }}>
-                                    Receive
-                                    {/* <CheckCircleIcon className="h-5 w-5 text-green-500" /> */}
-                                  </button>
-                                </th>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="bg-white shadow-lg overflow-x-auto">
-                      <h6 className="text-md font-bold leading-tight tracking-tight text-gray-700 dark:text-white m-2">
-                        Left Floater
-                      </h6>
-                      <table className="table table-xs">
-                        {/* head */}
-                        <thead>
-                          <tr>
-                            <th></th>
-                            <th>Name</th>
-                            <th>Points</th>
-                            <th>Action</th>
-                            <th>Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {leftFLoaterData.map(
-                            ({ status, points, action_type, fromUser }) => {
-                              let fullName = `${fromUser.firstName} ${fromUser.lastName}`;
-                              return (
-                                <tr>
-                                  <th></th>
-                                  <th>{fullName}</th>
-                                  <th>{points.low}</th>
-                                  <th>{action_type}</th>
-                                  <th>{status ? 'TRUE' : 'FALSE'}</th>
-                                </tr>
-                              );
-                            }
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="bg-white shadow-lg overflow-x-auto">
-                      <h6 className="text-md font-bold leading-tight tracking-tight text-gray-700 dark:text-white m-2">
-                        Right Floater
-                      </h6>
-                      <table className="table table-xs">
-                        {/* head */}
-                        <thead>
-                          <tr>
-                            <th></th>
-                            <th>Name</th>
-                            <th>Points</th>
-                            <th>Action</th>
-                            <th>Status</th>
-                          </tr>
-                        </thead>
-                        {rightFLoaterData.map(
+                              <th>
+                                <button
+                                  // disabled={isButtonDisabled}
+                                  className="btn btn-outline btn-sm ml-2 btn-success"
+                                  onClick={async () => {
+                                    let res = await axios({
+                                      method: 'POST',
+                                      url: 'user/createFloater',
+                                      data: {
+                                        ID: node.ID
+                                      }
+                                    });
+                                    await getNetworkNode();
+                                    await fetchFloaterData();
+                                    await fetchRightFloaterData();
+                                  }}>
+                                  Receive
+                                  {/* <CheckCircleIcon className="h-5 w-5 text-green-500" /> */}
+                                </button>
+                              </th>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </TitleCard>
+                  <div className="bg-white shadow-lg overflow-x-auto">
+                    <h6 className="text-md font-bold leading-tight tracking-tight text-gray-700 dark:text-white m-2">
+                      Left Floater
+                    </h6>
+                    <table className="table table-xs">
+                      {/* head */}
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Name</th>
+                          <th>Points</th>
+                          <th>Action</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leftFLoaterData.map(
                           ({ status, points, action_type, fromUser }) => {
                             let fullName = `${fromUser.firstName} ${fromUser.lastName}`;
                             return (
@@ -481,8 +448,39 @@ function InternalPage() {
                             );
                           }
                         )}
-                      </table>
-                    </div>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="bg-white shadow-lg overflow-x-auto">
+                    <h6 className="text-md font-bold leading-tight tracking-tight text-gray-700 dark:text-white m-2">
+                      Right Floater
+                    </h6>
+                    <table className="table table-xs">
+                      {/* head */}
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Name</th>
+                          <th>Points</th>
+                          <th>Action</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      {rightFLoaterData.map(
+                        ({ status, points, action_type, fromUser }) => {
+                          let fullName = `${fromUser.firstName} ${fromUser.lastName}`;
+                          return (
+                            <tr>
+                              <th></th>
+                              <th>{fullName}</th>
+                              <th>{points.low}</th>
+                              <th>{action_type}</th>
+                              <th>{status ? 'TRUE' : 'FALSE'}</th>
+                            </tr>
+                          );
+                        }
+                      )}
+                    </table>
                   </div>
                 </div>
               )}
