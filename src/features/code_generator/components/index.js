@@ -9,6 +9,9 @@ import InputText from '../../../components/Input/InputText';
 import { Formik, useField, useFormik, Form } from 'formik';
 import * as Yup from 'yup';
 import Dropdown from '../../../components/Input/Dropdown';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
 const BILLS = [
   {
     invoiceNo: '#4567',
@@ -70,7 +73,7 @@ const TopSideButtons = () => {
   return (
     <div className="inline-block float-right">
       <button className="btn  " onClick={openAddNewModal}>
-        <i class="fa-solid fa-circle-plus mr-1"></i>
+        <i className="fa-solid fa-circle-plus mr-1"></i>
         Create Code Bundle
       </button>
     </div>
@@ -80,21 +83,62 @@ const TopSideButtons = () => {
 function Billing() {
   const [bills, setBills] = useState(BILLS);
 
+  const appSettings = useSelector(state => state.appSettings);
+
   const [openTab, setOpenTab] = useState(1);
   const formikConfig = {
     initialValues: {
+      codeType: '',
+      packageType: '',
       quantity: 20
     },
-    validationSchema: Yup.object({}),
+    validationSchema: Yup.object({
+      codeType: Yup.string().required('Required'),
+      packageType: Yup.string().required('Required'),
+      quantity: Yup.number().required('Required')
+    }),
     // validateOnMount: true,
     // validateOnChange: false,
-    onSubmit: async (values, { setSubmitting }) => {
-      console.log('Dex');
+    onSubmit: async (values, { setSubmitting, errors }) => {
+      setSubmitting(true);
+      try {
+        let res = await axios({
+          method: 'POST',
+          url: 'code/generateCodeBundle',
+          data: values
+        });
+
+        toast.success('Created Successfully', {
+          position: 'top-right',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        });
+      } catch (error) {
+        toast.error('Something went wrong', {
+          position: 'top-right',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        });
+      } finally {
+        setSubmitting(false);
+        document.getElementById('createCodeModal').close();
+      }
     }
   };
 
   return (
     <>
+      <ToastContainer />
       <TitleCard
         title="Code Generator"
         topMargin="mt-2"
@@ -121,7 +165,7 @@ function Billing() {
                     data-toggle="tab"
                     href="#link1"
                     role="tablist">
-                    <i class="fa-solid fa-check-to-slot mr-2"></i>
+                    <i className="fa-solid fa-check-to-slot mr-2"></i>
                     Generated
                   </a>
                 </li>
@@ -140,7 +184,7 @@ function Billing() {
                     data-toggle="tab"
                     href="#link2"
                     role="tablist">
-                    <i class="fa-solid fa-hourglass-half mr-2"></i>Pending
+                    <i className="fa-solid fa-hourglass-half mr-2"></i>Pending
                   </a>
                 </li>
               </ul>
@@ -184,6 +228,7 @@ function Billing() {
           setErrors,
           isSubmitting
         }) => {
+          let { codeTypeList, packageList } = appSettings;
           return (
             <dialog
               id="createCodeModal"
@@ -201,28 +246,38 @@ function Billing() {
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
                     <Dropdown
                       // icons={mdiAccount}
-                      label="Type"
-                      name="targetUserID"
+                      label="Code Type"
+                      name="codeType"
                       type="text"
                       placeholder=""
-                      value={values.targetUserID}
+                      value={values.codeType}
                       setFieldValue={setFieldValue}
                       onBlur={handleBlur}
-                      options={[]}
-                      affectedInput="targetUserID"
-                      affectedInputValue="id"
+                      options={codeTypeList.map(val => {
+                        return {
+                          value: val.name,
+                          label: val.displayName
+                        };
+                      })}
+                      affectedInput="codeType"
+                      affectedInputValue="codeType"
                     />
                     <Dropdown
-                      label="Package"
-                      name="package"
+                      label="Amulet Package"
+                      name="packageType"
                       type="text"
                       placeholder=""
-                      value={values.position}
+                      value={values.packageType}
                       setFieldValue={setFieldValue}
                       onBlur={handleBlur}
-                      options={[]}
-                      affectedInput="position"
-                      affectedInputValue="id"
+                      options={packageList.map(val => {
+                        return {
+                          value: val.name,
+                          label: val.displayName
+                        };
+                      })}
+                      affectedInput="packageType"
+                      affectedInputValue="packageType"
                     />
                   </div>
                   <InputText
