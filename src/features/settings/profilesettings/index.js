@@ -39,6 +39,11 @@ function ProfileSettings(props) {
   const [openTab, setOpenTab] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
+  const appSettings = useSelector(state => state.appSettings);
+  let { codeTypeList, packageList } = appSettings;
+
+  console.log({ packageList });
+
   const amulet_packageSelection = [
     // {
     //   label: 'SGEP 8 Package',

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import LandingIntro from './LandingIntro';
 import ErrorText from '../../components/Typography/ErrorText';
@@ -65,12 +66,12 @@ function placementInfoIcon(props) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6">
+      className="w-6 h-6">
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
       />
     </svg>
@@ -83,31 +84,33 @@ function paymentInfoIcon(props) {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
-      class="w-6 h-6">
+      className="w-6 h-6">
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"
       />
     </svg>
   );
 }
 
-function Login() {
+function Register() {
   const [emailError, setEmailError] = useState('');
 
   const [users, setUser] = useState([]);
+  const [isLoaded, setIsLoaded] = useState([]);
 
   const fetchUsers = async () => {
     let res = await axios({
       method: 'GET',
       url: 'user/list'
     });
-    let list = res.data.map(({ id, firstName, lastName }) => {
+    let list = res.data.map(({ ID, displayID, firstName, lastName }) => {
       return {
-        value: id,
+        actualId: ID,
+        value: displayID,
         label: `${firstName} ${lastName}`
       };
     });
@@ -115,24 +118,38 @@ function Login() {
   };
   useEffect(() => {
     fetchUsers();
+    setIsLoaded(true);
   }, []);
 
-  const amulet_packageSelection = [
-    // {
-    //   label: 'SGEP 8 Package',
-    //   value: 'sgep_8'
-    // },
+  const appSettings = useSelector(state => state.appSettings);
+  let { codeTypeList, packageList } = appSettings;
+
+  const amulet_packageSelection = packageList.map(p => {
+    return {
+      label: p.displayName,
+      value: p.name
+    };
+  });
+
+  const paymentMethodSelection = [
     {
-      label: 'SGEP 10 Package (Php 10,000)',
-      value: 'sgep_10'
+      label: 'Cheque',
+      value: 'cheque'
     },
     {
-      label: 'SGEP 50 Package (Php 50,000)',
-      value: 'sgep_50'
+      label: 'Cash',
+      value: 'cash'
+    }
+  ];
+
+  const signatureSelection = [
+    {
+      label: 'Yes',
+      value: true
     },
     {
-      label: 'SGEP 100 Package (Php 100,000)',
-      value: 'sgep_100'
+      label: 'No',
+      value: false
     }
   ];
 
@@ -195,6 +212,7 @@ function Login() {
 
   const formikConfig = {
     initialValues: {
+      formId: '',
       email: '',
       password: '',
       userName: '',
@@ -215,13 +233,22 @@ function Login() {
       placementIdNumber: '',
       signatureOfSponsor: '',
       signatureOfApplicant: '',
-      signature: '',
+
       check: '',
       amount: '',
       cash: '',
-      amulet_package: amulet_packageSelection[0].value
+      amulet_package:
+        amulet_packageSelection.length > 0
+          ? amulet_packageSelection[0].value
+          : '',
+      paymentMethod: paymentMethodSelection[0].value,
+      signature: signatureSelection[0].value,
+      chequeNumber: '',
+      amountInWords: '',
+      amountInNumber: ''
     },
     validationSchema: Yup.object({
+      formId: Yup.string().required('Required'),
       // userName: Yup.string().required('Required'),
       // firstName: Yup.string().required('Required'),
       // middleName: Yup.string().required('Required'),
@@ -237,22 +264,42 @@ function Login() {
       // address: Yup.string().required('Required'),
       // mobileNumber: Yup.number().required('Required'),
       // telephoneNumber: Yup.number().required('Required'),
-      // sponsorName: Yup.string().required('Required'),
-      // sponsorIdNumber: Yup.string().required('Required'),
+      sponsorName: Yup.string().required('Required'),
+      sponsorIdNumber: Yup.string().required('Required'),
       // placementName: Yup.string().required('Required'),
       // placementIdNumber: Yup.string().required('Required'),
       // signatureOfSponsor: Yup.string().required('Required'),
       // signatureOfApplicant: Yup.string().required('Required'),
       // check: Yup.string().required('Required'),
       // cash: Yup.string().required('Required'),
-      // amount: Yup.string().required('Required'),
+      amountInNumber: Yup.string().required('Required'),
+      amountInWords: Yup.string().required('Required'),
       // signature: Yup.string().required('Required'),
-      // date_sign: Yup.string().required('Required')
+      // date_sign: Yup.string().required('Required'),
+      paymentMethod: Yup.string().required('Required'),
+
+      chequeNumber: Yup.string()
+        .required('Required')
+        .when('paymentMethod', ([paymentMethodVal], num2, schema) => {
+          if (paymentMethodVal === 'cheque') {
+            return Yup.string().required('Required');
+          } else {
+            return Yup.string();
+          }
+
+          // return num1 > 0 && num2 > 0 ? schema.max(num1 / num2) : schema.max(0);
+        })
     }),
     // validateOnMount: true,
     // validateOnChange: false,
     onSubmit: async values => {
-      let memberData = values;
+      // sponsorNameis
+
+      let sponsorUser = users.find(({ value }) => {
+        return value === values.sponsorIdNumber;
+      });
+
+      let memberData = { ...values, sponsorIdNumber: sponsorUser.actualId };
 
       try {
         let res = await axios({
@@ -289,318 +336,321 @@ function Login() {
     }
   };
   return (
-    <div className="">
-      <div className="mt-0">
-        <div
-          className="grid  md:grid-cols-1 grid-cols-1  bg-base-100 rounded-xl 
+    isLoaded && (
+      <div className="">
+        <div className="mt-0">
+          <div
+            className="grid  md:grid-cols-1 grid-cols-1  bg-base-100 rounded-xl 
 
          ">
-          <div className="p-2 space-y-4 md:space-y-6 sm:p-4">
-            {/* <h1 className="text-md font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+            <div className="p-2 space-y-4 md:space-y-6 sm:p-4">
+              {/* <h1 className="text-md font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
               Register
             </h1> */}
-            <Formik {...formikConfig}>
-              {({
-                handleSubmit,
-                handleChange,
-                handleBlur, // handler for onBlur event of form elements
-                values,
-                touched,
-                errors,
-                submitForm,
-                setFieldTouched,
-                setFieldValue,
-                setFieldError,
-                setErrors
-              }) => {
-                const checkValidateTab = () => {
-                  // submitForm();
-                };
-                const errorMessages = () => {
-                  // you can add alert or console.log or any thing you want
-                  alert('Please fill in the required fields');
-                };
-                const handleTabChange = ({ prevIndex, nextIndex }) => {
-                  if (nextIndex === 1) {
-                    validation = [
-                      'username',
-                      'password',
-                      'firstName',
-                      'lastName',
-                      'middleName',
-                      'address',
-                      'birthday',
-                      'age',
-                      'civilStatus',
-                      'mobileNumber',
-                      'telephoneNumber',
-                      'email',
-                      'beneficiaryRelationship'
-                    ];
-                  }
-                  if (nextIndex === 2) {
-                    validation = [
-                      'sponsorName',
-                      'sponsorIdNumber',
-                      'placementName',
-                      'placementIdNumber',
-                      'signatureOfSponsor',
-                      'signatureOfApplicant'
-                    ];
-                  }
-                  if (nextIndex === 3) {
-                    validation = [
-                      'check',
-                      'cash',
-                      'amount',
-                      'signature',
-                      'date_sign'
-                    ];
-                  }
-                };
+              <Formik {...formikConfig}>
+                {({
+                  handleSubmit,
+                  handleChange,
+                  handleBlur, // handler for onBlur event of form elements
+                  values,
+                  touched,
+                  errors,
+                  submitForm,
+                  setFieldTouched,
+                  setFieldValue,
+                  setFieldError,
+                  setErrors
+                }) => {
+                  const checkValidateTab = () => {
+                    // submitForm();
+                  };
+                  const errorMessages = () => {
+                    // you can add alert or console.log or any thing you want
+                    alert('Please fill in the required fields');
+                  };
+                  const handleTabChange = ({ prevIndex, nextIndex }) => {
+                    if (nextIndex === 1) {
+                      validation = [
+                        'username',
+                        'password',
+                        'firstName',
+                        'lastName',
+                        'middleName',
+                        'address',
+                        'birthday',
+                        'age',
+                        'civilStatus',
+                        'mobileNumber',
+                        'telephoneNumber',
+                        'email',
+                        'beneficiaryRelationship'
+                      ];
+                    }
+                    if (nextIndex === 2) {
+                      validation = [
+                        'sponsorName',
+                        'sponsorIdNumber',
+                        'paymentMethod'
+                        // 'placementName',
+                        // 'placementIdNumber',
+                        // 'signatureOfSponsor',
+                        // 'signatureOfApplicant'
+                      ];
+                    }
+                    if (nextIndex === 3) {
+                      validation = [
+                        'formId',
+                        'check',
+                        'cash',
+                        'amount',
+                        'signature',
+                        'date_sign'
+                      ];
+                    }
+                  };
 
-                const handleEmailChange = e => {
-                  handleChange(e);
-                  debouncedEmailValidation(
-                    e.target.value,
-                    setFieldError,
-                    errors,
-                    setErrors
-                  );
-                };
+                  const handleEmailChange = e => {
+                    handleChange(e);
+                    debouncedEmailValidation(
+                      e.target.value,
+                      setFieldError,
+                      errors,
+                      setErrors
+                    );
+                  };
 
-                const handleUserNameChange = e => {
-                  handleChange(e);
-                  debouncedUserNameValidation(
-                    e.target.value,
-                    setFieldError,
-                    errors
-                  );
-                };
+                  const handleUserNameChange = e => {
+                    handleChange(e);
+                    debouncedUserNameValidation(
+                      e.target.value,
+                      setFieldError,
+                      errors
+                    );
+                  };
 
-                return (
-                  <FormWizard
-                    onComplete={() => {
-                      handleSubmit();
-                    }}
-                    onTabChange={handleTabChange}
-                    stepSize="xs"
-                    color="#22c55e"
-                    finishButtonText="Submit"
-                    finishButtonTemplate={handleComplete => (
-                      <div>
-                        <button
-                          type="button"
-                          className="btn mt-2 justify-end  btn-primary float-right"
-                          onClick={() => {
-                            handleComplete();
-                          }}>
-                          <PlayCircleIcon className="h-6 w-6" />
-                          Submit
-                        </button>
-                      </div>
-                    )}
-                    backButtonTemplate={handlePrevious => (
-                      <div>
-                        <button
-                          className="btn mt-2 justify-end  float-left"
-                          onClick={() => {
-                            handlePrevious();
-                          }}>
-                          <BackwardIcon className="h-6 w-6" />
-                          Previous
-                        </button>
-                      </div>
-                    )}
-                    nextButtonTemplate={(handleNext, currentIndex) => (
-                      <div>
-                        <button
-                          className="btn mt-2 justify-end  btn-primary float-right"
-                          onClick={() => {
-                            validation.map(key => {
-                              setFieldTouched(key);
-                            });
-                            let errorKeys = Object.keys(errors);
+                  return (
+                    <FormWizard
+                      onComplete={() => {
+                        handleSubmit();
+                      }}
+                      onTabChange={handleTabChange}
+                      stepSize="xs"
+                      color="#22c55e"
+                      finishButtonText="Submit"
+                      finishButtonTemplate={handleComplete => (
+                        <div>
+                          <button
+                            type="button"
+                            className="btn mt-2 justify-end  btn-primary float-right"
+                            onClick={() => {
+                              handleComplete();
+                            }}>
+                            <PlayCircleIcon className="h-6 w-6" />
+                            Submit
+                          </button>
+                        </div>
+                      )}
+                      backButtonTemplate={handlePrevious => (
+                        <div>
+                          <button
+                            className="btn mt-2 justify-end  float-left"
+                            onClick={() => {
+                              handlePrevious();
+                            }}>
+                            <BackwardIcon className="h-6 w-6" />
+                            Previous
+                          </button>
+                        </div>
+                      )}
+                      nextButtonTemplate={(handleNext, currentIndex) => (
+                        <div>
+                          <button
+                            className="btn mt-2 justify-end  btn-primary float-right"
+                            onClick={() => {
+                              validation.map(key => {
+                                setFieldTouched(key);
+                              });
+                              let errorKeys = Object.keys(errors);
 
-                            const findCommonErrors = (arr1, arr2) => {
-                              // if firstValidation exists on errorKeys
-                              return arr1.some(item => arr2.includes(item));
-                            };
+                              const findCommonErrors = (arr1, arr2) => {
+                                // if firstValidation exists on errorKeys
+                                return arr1.some(item => arr2.includes(item));
+                              };
 
-                            const hasFirstValidationError = findCommonErrors(
-                              errorKeys,
-                              validation
-                            );
+                              const hasFirstValidationError = findCommonErrors(
+                                errorKeys,
+                                validation
+                              );
 
-                            if (hasFirstValidationError === false) {
-                              handleNext();
-                            }
-                          }}>
-                          Next
-                          <ForwardIcon className="h-6 w-6" />
-                        </button>
-                      </div>
-                    )}>
-                    <FormWizard.TabContent
-                      title="Personal Information"
-                      icon={SolarUserLinear()}
-                      isValid={checkValidateTab()}
-                      errorMessages={errorMessages}>
-                      <Form className="">
-                        <InputText
-                          icons={mdiEmailCheckOutline}
-                          label="Email Address"
-                          name="email"
-                          type="email"
-                          placeholder=""
-                          value={values.email}
-                          onBlur={async e => {
-                            await handleEmailChange(e);
-                            await handleBlur(e);
-                          }}
-                          // onChange={handleEmailChange}
-                        />
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                              if (hasFirstValidationError === false) {
+                                handleNext();
+                              }
+                            }}>
+                            Next
+                            <ForwardIcon className="h-6 w-6" />
+                          </button>
+                        </div>
+                      )}>
+                      <FormWizard.TabContent
+                        title="Personal Information"
+                        icon={SolarUserLinear()}
+                        isValid={checkValidateTab()}
+                        errorMessages={errorMessages}>
+                        <Form className="">
                           <InputText
-                            icons={mdiAccount}
-                            label="Username"
-                            name="userName"
-                            type="text"
+                            icons={mdiEmailCheckOutline}
+                            label="Email Address"
+                            name="email"
+                            type="email"
                             placeholder=""
-                            value={values.userName}
-                            onBlur={e => {
-                              handleBlur(e);
-                              handleUserNameChange(e);
+                            value={values.email}
+                            onBlur={async e => {
+                              await handleEmailChange(e);
+                              await handleBlur(e);
                             }}
+                            // onChange={handleEmailChange}
                           />
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                            <InputText
+                              icons={mdiAccount}
+                              label="Username"
+                              name="userName"
+                              type="text"
+                              placeholder=""
+                              value={values.userName}
+                              onBlur={e => {
+                                handleBlur(e);
+                                handleUserNameChange(e);
+                              }}
+                            />
+                            <InputText
+                              icons={mdiLockOutline}
+                              label="Password"
+                              name="password"
+                              type="password"
+                              placeholder="Enter your password"
+                              value={values.password}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 ">
+                            <InputText
+                              icons={mdiAccount}
+                              label="Last name"
+                              name="lastName"
+                              type="text"
+                              placeholder=""
+                              value={values.lastName}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                            <InputText
+                              icons={mdiAccount}
+                              label="First name"
+                              name="firstName"
+                              type="text"
+                              placeholder=""
+                              value={values.firstName}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                            <InputText
+                              icons={mdiAccount}
+                              label="Middle Name"
+                              name="middleName"
+                              type="text"
+                              placeholder=""
+                              value={values.middleName}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                          </div>
                           <InputText
-                            icons={mdiLockOutline}
-                            label="Password"
-                            name="password"
-                            type="password"
-                            placeholder="Enter your password"
-                            value={values.password}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 ">
-                          <InputText
-                            icons={mdiAccount}
-                            label="Last name"
-                            name="lastName"
+                            icons={mdiMapMarker}
+                            label="Address"
+                            name="address"
                             type="text"
                             placeholder=""
-                            value={values.lastName}
+                            value={values.address}
                             onBlur={handleBlur} // This apparently updates `touched`?
                           />
-                          <InputText
-                            icons={mdiAccount}
-                            label="First name"
-                            name="firstName"
-                            type="text"
-                            placeholder=""
-                            value={values.firstName}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                          <InputText
-                            icons={mdiAccount}
-                            label="Middle Name"
-                            name="middleName"
-                            type="text"
-                            placeholder=""
-                            value={values.middleName}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                        </div>
-                        <InputText
-                          icons={mdiMapMarker}
-                          label="Address"
-                          name="address"
-                          type="text"
-                          placeholder=""
-                          value={values.address}
-                          onBlur={handleBlur} // This apparently updates `touched`?
-                        />
 
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 ">
-                          <InputText
-                            icons={mdiCalendarRange}
-                            label="Birthday"
-                            name="birthday"
-                            type="date"
-                            placeholder=""
-                            value={values.birthday}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                          <InputText
-                            icons={mdiAccount}
-                            label="Age"
-                            name="age"
-                            type="number"
-                            placeholder=""
-                            value={values.age}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                          <Dropdown
-                            icons={mdiAccount}
-                            label="Civil Status"
-                            name="civilStatus"
-                            type="text"
-                            placeholder=""
-                            value={values.civilStatus}
-                            setFieldValue={setFieldValue}
-                            onBlur={handleBlur}
-                            options={[
-                              { value: 'single', label: 'Single' },
-                              { value: 'married', label: 'Married' },
-                              { value: 'divorced', label: 'Divorced' },
-                              { value: 'widowed', label: 'Widowed' }
-                            ]}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <InputText
-                            icons={mdiPhoneOutline}
-                            label="Home Telephone Number"
-                            name="telephoneNumber"
-                            type="number"
-                            placeholder=""
-                            value={values.telephoneNumber}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                          <InputText
-                            icons={mdiPhoneOutline}
-                            label="Mobile Number"
-                            name="mobileNumber"
-                            type="number"
-                            placeholder=""
-                            value={values.mobileNumber}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                        </div>
+                          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 ">
+                            <InputText
+                              icons={mdiCalendarRange}
+                              label="Birthday"
+                              name="birthday"
+                              type="date"
+                              placeholder=""
+                              value={values.birthday}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                            <InputText
+                              icons={mdiAccount}
+                              label="Age"
+                              name="age"
+                              type="number"
+                              placeholder=""
+                              value={values.age}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                            <Dropdown
+                              icons={mdiAccount}
+                              label="Civil Status"
+                              name="civilStatus"
+                              type="text"
+                              placeholder=""
+                              value={values.civilStatus}
+                              setFieldValue={setFieldValue}
+                              onBlur={handleBlur}
+                              options={[
+                                { value: 'single', label: 'Single' },
+                                { value: 'married', label: 'Married' },
+                                { value: 'divorced', label: 'Divorced' },
+                                { value: 'widowed', label: 'Widowed' }
+                              ]}
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                            <InputText
+                              icons={mdiPhoneOutline}
+                              label="Home Telephone Number"
+                              name="telephoneNumber"
+                              type="number"
+                              placeholder=""
+                              value={values.telephoneNumber}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                            <InputText
+                              icons={mdiPhoneOutline}
+                              label="Mobile Number"
+                              name="mobileNumber"
+                              type="number"
+                              placeholder=""
+                              value={values.mobileNumber}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                          </div>
 
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <InputText
-                            icons={mdiAccountHeartOutline}
-                            label="Beneficiary Relationship"
-                            name="beneficiaryRelationship"
-                            type="text"
-                            placeholder=""
-                            value={values.beneficiaryRelationship}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                          <InputText
-                            icons={mdiAccount}
-                            label="Age"
-                            name="age"
-                            type="text"
-                            placeholder=""
-                            value={values.age}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                        </div>
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                            <InputText
+                              icons={mdiAccountHeartOutline}
+                              label="Beneficiary Relationship"
+                              name="beneficiaryRelationship"
+                              type="text"
+                              placeholder=""
+                              value={values.beneficiaryRelationship}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                            <InputText
+                              icons={mdiAccount}
+                              label="Age"
+                              name="age"
+                              type="text"
+                              placeholder=""
+                              value={values.age}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                          </div>
 
-                        {/* <button
+                          {/* <button
                           type="submit"
                           className={
                             'btn mt-2 w-full btn-primary' +
@@ -617,100 +667,67 @@ function Login() {
                             </span>
                           </Link>
                         </div> */}
-                      </Form>
-                    </FormWizard.TabContent>
-                    <FormWizard.TabContent
-                      title="Placement Information"
-                      icon={placementInfoIcon()}>
-                      <Form className="">
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <Dropdown
-                            // icons={mdiAccount}
-                            label="Sponsor Name"
-                            name="sponsorName"
-                            type="text"
-                            placeholder=""
-                            value={values.sponsorName}
-                            setFieldValue={setFieldValue}
-                            onBlur={handleBlur}
-                            options={users}
-                            affectedInput="sponsorIdNumber"
-                            affectedInputValue="id"
-                          />
+                        </Form>
+                      </FormWizard.TabContent>
+                      <FormWizard.TabContent
+                        title="Placement Information"
+                        icon={placementInfoIcon()}>
+                        <Form className="">
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                            <Dropdown
+                              // icons={mdiAccount}
+                              label="Sponsor Name"
+                              name="sponsorName"
+                              type="text"
+                              placeholder=""
+                              value={values.sponsorName}
+                              setFieldValue={setFieldValue}
+                              onBlur={handleBlur}
+                              options={users}
+                              affectedInput="sponsorIdNumber"
+                              affectedInputValue="sponsorIdNumber"
+                            />
 
-                          {/* <InputText
-                            icons={mdiAccount}
-                            label="Sponsor Name"
-                            name="sponsorName"
-                            type="text"
-                            placeholder=""
-                            value={values.sponsorName}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          /> */}
-                          <InputText
-                            icons={mdiAccount}
-                            label="Sponsor ID Number"
-                            name="sponsorIdNumber"
-                            type="text"
-                            placeholder=""
-                            value={values.sponsorIdNumber}
-                            disabled
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <Dropdown
-                            // icons={mdiAccount}
-                            label="Placement Name"
-                            name="placementName"
-                            type="text"
-                            placeholder=""
-                            value={values.placementName}
-                            onBlur={handleBlur}
-                            options={users}
-                            setFieldValue={setFieldValue}
-                            affectedInput="placementIdNumber"
-                            affectedInputValue="id"
-                          />
-                          <InputText
-                            icons={mdiAccount}
-                            label="Placement ID Number"
-                            name="placementIdNumber"
-                            type="text"
-                            placeholder=""
-                            value={values.placementIdNumber}
-                            onBlur={handleBlur}
-                            disabled
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <InputText
-                            icons={mdiAccount}
-                            label="Signature of Sponsor"
-                            name="signatureOfSponsor"
-                            type="text"
-                            placeholder=""
-                            value={values.signatureOfSponsor}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                          <InputText
-                            icons={mdiAccount}
-                            label="Signature of Applicant"
-                            name="signatureOfApplicant"
-                            type="text"
-                            placeholder=""
-                            value={values.signatureOfApplicant}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                        </div>
-                      </Form>
-                    </FormWizard.TabContent>
-                    <FormWizard.TabContent
-                      title="Payment Information"
-                      icon={paymentInfoIcon()}>
-                      <Form className="">
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <InputText
+                            <InputText
+                              icons={mdiAccount}
+                              label="Sponsor ID Number"
+                              name="sponsorIdNumber"
+                              type="text"
+                              placeholder=""
+                              value={values.sponsorIdNumber}
+                              disabled
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                          </div>
+                        </Form>
+                      </FormWizard.TabContent>
+                      <FormWizard.TabContent
+                        title="Payment Information"
+                        icon={paymentInfoIcon()}>
+                        <Form className="">
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                            <InputText
+                              icons={mdiCreditCardOutline}
+                              label="Form ID"
+                              name="formId"
+                              type="text"
+                              placeholder=""
+                              value={values.formId}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                            <InputText
+                              icons={mdiCreditCardOutline}
+                              label="Date"
+                              name="date_sign"
+                              type="date"
+                              placeholder=""
+                              disabled
+                              value={values.date_sign}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                            {/* <InputText
                             icons={mdiCreditCardOutline}
                             label="Check"
                             name="check"
@@ -727,19 +744,61 @@ function Login() {
                             placeholder=""
                             value={values.cash}
                             onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                        </div>
-                        <InputText
-                          icons={mdiCreditCardOutline}
-                          label="Amount"
-                          name="amount"
-                          type="text"
-                          placeholder=""
-                          value={values.amount}
-                          onBlur={handleBlur} // This apparently updates `touched`?
-                        />
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <InputText
+                          /> */}
+
+                            <div>
+                              <label
+                                className={`block mb-2 text-neutral-900 text-left font-bold`}>
+                                Payment Method
+                              </label>
+                              <RadioText
+                                icons={mdiAccount}
+                                label=""
+                                name="paymentMethod"
+                                type="radio"
+                                placeholder=""
+                                value={values.paymentMethod}
+                                setFieldValue={setFieldValue}
+                                options={paymentMethodSelection}
+                                defaultValue={paymentMethodSelection[0].value}
+                                onBlur={handleBlur} // This apparently updates `touched`?
+                              />
+                            </div>
+
+                            {values.paymentMethod === 'cheque' && (
+                              <InputText
+                                icons={mdiCreditCardOutline}
+                                label="Cheque Number"
+                                name="chequeNumber"
+                                type="text"
+                                placeholder=""
+                                value={values.chequeNumber}
+                                onBlur={handleBlur} // This apparently updates `touched`?
+                              />
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 mt-2">
+                            <InputText
+                              icons={mdiCreditCardOutline}
+                              label="Amount In Number"
+                              name="amountInNumber"
+                              type="text"
+                              placeholder=""
+                              value={values.amountInNumber}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                            <InputText
+                              icons={mdiCreditCardOutline}
+                              label="Amount In Words"
+                              name="amountInWords"
+                              type="text"
+                              placeholder=""
+                              value={values.amountInWords}
+                              onBlur={handleBlur} // This apparently updates `touched`?
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                            {/* <InputText
                             icons={mdiCreditCardOutline}
                             label="Signature"
                             name="signature"
@@ -747,37 +806,52 @@ function Login() {
                             placeholder=""
                             value={values.signature}
                             onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                          <InputText
-                            icons={mdiCreditCardOutline}
-                            label="Date"
-                            name="date_sign"
-                            type="date"
-                            placeholder=""
-                            disabled
-                            value={values.date_sign}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                        </div>
+                          /> */}
+                          </div>
 
-                        <div className="">
-                          <label
-                            className={`block mb-2 text-neutral-900 text-left font-bold`}>
-                            Choose Amulet Package
-                          </label>
-                          <RadioText
-                            icons={mdiAccount}
-                            label="Choose Amulet Package"
-                            name="amulet_package"
-                            type="radio"
-                            placeholder=""
-                            value={values.amulet_package}
-                            setFieldValue={setFieldValue}
-                            options={amulet_packageSelection}
-                            defaultValue={amulet_packageSelection[0].value}
-                            onBlur={handleBlur} // This apparently updates `touched`?
-                          />
-                          {/* <InputText
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                            <div>
+                              <label
+                                className={`block mb-2 text-neutral-900 text-left font-bold`}>
+                                Choose Amulet Package
+                              </label>
+                              <RadioText
+                                icons={mdiAccount}
+                                label="Choose Amulet Package"
+                                name="amulet_package"
+                                type="radio"
+                                placeholder=""
+                                value={values.amulet_package}
+                                setFieldValue={setFieldValue}
+                                options={amulet_packageSelection}
+                                defaultValue={
+                                  amulet_packageSelection.length > 0
+                                    ? amulet_packageSelection[0].value
+                                    : 'package_10'
+                                }
+                                onBlur={handleBlur} // This apparently updates `touched`?
+                              />
+                            </div>
+                            <div>
+                              <label
+                                className={`block mb-2 text-neutral-900 text-left font-bold`}>
+                                With Member Signature
+                              </label>
+                              <RadioText
+                                icons={mdiAccount}
+                                label=""
+                                name="signature"
+                                type="radio"
+                                placeholder=""
+                                value={values.signature}
+                                setFieldValue={setFieldValue}
+                                options={signatureSelection}
+                                defaultValue={signatureSelection[0].value}
+                                onBlur={handleBlur} // This apparently updates `touched`?
+                              />
+                            </div>
+
+                            {/* <InputText
                             icons={mdiAccount}
                             label="Cash"
                             name="cash"
@@ -786,8 +860,8 @@ function Login() {
                             value={values.cash}
                             onBlur={handleBlur} // This apparently updates `touched`?
                           /> */}
-                        </div>
-                        {/* <div className="grid grid-cols-2 gap-3 md:grid-cols-1 ">
+                          </div>
+                          {/* <div className="grid grid-cols-2 gap-3 md:grid-cols-1 ">
                           <InputText
                             icons={mdiAccount}
                             label="Amount"
@@ -798,18 +872,19 @@ function Login() {
                             onBlur={handleBlur} // This apparently updates `touched`?
                           />
                         </div> */}
-                      </Form>
-                    </FormWizard.TabContent>
-                  </FormWizard>
-                );
-              }}
-            </Formik>
+                        </Form>
+                      </FormWizard.TabContent>
+                    </FormWizard>
+                  );
+                }}
+              </Formik>
+            </div>
           </div>
         </div>
+        <ToastContainer />
       </div>
-      <ToastContainer />
-    </div>
+    )
   );
 }
 
-export default Login;
+export default Register;

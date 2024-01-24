@@ -51,7 +51,7 @@ const MyTextInput = ({
                   checked={meta.value === value}
                   value={value}
                   onChange={() => {
-                    props.setFieldValue('amulet_package', value);
+                    props.setFieldValue(field.name, value);
                   }}
                 />
                 <span className="label-text ml-2">{label}</span>

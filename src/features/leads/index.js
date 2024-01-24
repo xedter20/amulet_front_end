@@ -13,29 +13,6 @@ import { showNotification } from '../common/headerSlice';
 
 import Register from '../../features/user/Register';
 
-const TopSideButtons = () => {
-  const dispatch = useDispatch();
-
-  const openAddNewLeadModal = () => {
-    dispatch(
-      openModal({
-        title: 'Add New Lead',
-        bodyType: MODAL_BODY_TYPES.LEAD_ADD_NEW
-      })
-    );
-  };
-
-  return (
-    <div className="inline-block float-right">
-      <button
-        className="btn px-6 btn-sm normal-case btn-primary"
-        onClick={() => openAddNewLeadModal()}>
-        Add New
-      </button>
-    </div>
-  );
-};
-
 function Leads() {
   const { leads } = useSelector(state => state.lead);
   const dispatch = useDispatch();

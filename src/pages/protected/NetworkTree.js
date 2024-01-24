@@ -40,9 +40,10 @@ const renderNodeWithCustomEvents = ({
         fill="#f0abfc"
         r="35"
         onClick={async () => {
+          console.log({ nodeDatum });
           handleNodeClick(nodeDatum);
           setFieldValue('parentNodeName', nodeDatum.name);
-          setFieldValue('parentNodeEmail', nodeDatum.attributes.email);
+          setFieldValue('parentNodeEmail', nodeDatum.attributes.displayID);
           setFieldValue('parentNodeID', nodeDatum.attributes.ID);
 
           if (nodeDatum.matchingPairs < 2) {
@@ -156,8 +157,11 @@ function InternalPage() {
   }, []);
   const fetchUsers = async () => {
     let res = await axios({
-      method: 'GET',
-      url: 'user/list'
+      method: 'POST',
+      url: 'user/getMySponseelist',
+      data: {
+        sponsorIdNumber: ''
+      }
     });
     let list = res.data
       .filter(({ parentID, isRootNode }) => {
@@ -246,16 +250,17 @@ function InternalPage() {
     },
     validationSchema: Yup.object({
       parentNodeName: Yup.string().required('Required'),
-      parentNodeEmail: Yup.string().email().required('Required'),
+      parentNodeEmail: Yup.string().required('Required'),
       targetUserID: Yup.string().required('Required'),
       parentNodeID: Yup.string().required('Required'),
       position: Yup.string().required('Required')
     }),
     // validateOnMount: true,
     // validateOnChange: false,
-    onSubmit: async (values, { setSubmitting }) => {
+    onSubmit: async (values, { setSubmitting, errors }) => {
       try {
         setSubmitting(true);
+
         let res = await axios({
           method: 'POST',
           url: 'user/createChildren',
@@ -333,6 +338,7 @@ function InternalPage() {
         setErrors,
         isSubmitting
       }) => {
+        console.log(errors);
         return (
           <div ref={treeContainerRef} style={{ height: '100vh' }}>
             <div className="">
@@ -517,15 +523,15 @@ function InternalPage() {
                     ✕
                   </button>
                 </form>
-                <h3 className="font-bold text-lg">Create Child User</h3>
+                <h3 className="font-bold text-lg">Add New Branch</h3>
 
                 <Form>
-                  <div className="divider">Parent</div>
+                  <div className="divider">Placement Information</div>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
                     <InputText
                       // icons={mdiEmailCheckOutline}
                       disabled
-                      label="Name"
+                      label="Placement Name"
                       name="parentNodeName"
                       type="text"
                       placeholder=""
@@ -536,7 +542,7 @@ function InternalPage() {
                     <InputText
                       // icons={mdiEmailCheckOutline}
                       disabled
-                      label="Email"
+                      label="Placement ID"
                       name="parentNode_Id"
                       type="text"
                       placeholder=""
@@ -545,7 +551,7 @@ function InternalPage() {
                       // onChange={handleEmailChange}
                     />
                   </div>
-                  <div className="divider">Target User(Child)</div>
+                  <div className="divider">Newly Registered Downlines</div>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
                     <Dropdown
                       // icons={mdiAccount}
