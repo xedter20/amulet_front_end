@@ -115,7 +115,27 @@ const PendingCodeBundleTableComponent = ({
           bundleId
         }
       });
+      toast.success('Email Sent Successfuly', {
+        position: 'top-right',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'light'
+      });
     } catch (error) {
+      toast.error('Something went wrong', {
+        position: 'top-right',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'light'
+      });
     } finally {
       setIsSubmitting(false);
     }

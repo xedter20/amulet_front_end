@@ -15,7 +15,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import TitleCard from '../../components/Cards/TitleCard';
-
+import { mdiAccount } from '@mdi/js';
 const renderNodeWithCustomEvents = ({
   nodeDatum,
   toggleNode,
@@ -26,7 +26,7 @@ const renderNodeWithCustomEvents = ({
   let matchCount = nodeDatum.matchingPairs.filter(({ status }) => {
     return status === 'PENDING';
   }).length;
-  const nodeSize = { x: '25%', y: '50%' };
+  const nodeSize = { x: '15%', y: '50%' };
   const foreignObjectProps = {
     width: nodeSize.x,
     height: nodeSize.y,
@@ -40,7 +40,6 @@ const renderNodeWithCustomEvents = ({
         fill="#f0abfc"
         r="35"
         onClick={async () => {
-          console.log({ nodeDatum });
           handleNodeClick(nodeDatum);
           setFieldValue('parentNodeName', nodeDatum.name);
           setFieldValue('parentNodeEmail', nodeDatum.attributes.displayID);
@@ -78,9 +77,9 @@ const renderNodeWithCustomEvents = ({
           </h6>
           {/* <hr /> */}
 
-          <h6 className="text-xs font-bold text-gray-800 text-center h6">
+          {/* <h6 className="text-xs font-bold text-gray-800 text-center h6">
             Total Points:
-          </h6>
+          </h6> */}
         </div>
         {/* <div style={{ border: '1px solid black', backgroundColor: '#dedede' }}>
           <h3 style={{ textAlign: 'center' }}>{nodeDatum.name}</h3>
@@ -163,6 +162,7 @@ function InternalPage() {
         sponsorIdNumber: ''
       }
     });
+
     let list = res.data
       .filter(({ parentID, isRootNode }) => {
         return !isRootNode && !parentID;
@@ -173,6 +173,7 @@ function InternalPage() {
           label: `${firstName} ${lastName}`
         };
       });
+
     setUser(list);
   };
   useEffect(() => {
@@ -232,7 +233,6 @@ function InternalPage() {
 
   const handleNodeClick = nodeDatum => {
     if (nodeDatum.children.length === 2) {
-      console.log(nodeDatum.matchingPairs);
       setPairMatchedUsers(nodeDatum.matchingPairs);
       document.getElementById('viewModal').showModal();
     } else {
@@ -246,18 +246,20 @@ function InternalPage() {
       parentNodeEmail: '',
       targetUserID: '',
       parentNodeID: '',
-      position: ''
+      position: '',
+      code: ''
     },
     validationSchema: Yup.object({
       parentNodeName: Yup.string().required('Required'),
       parentNodeEmail: Yup.string().required('Required'),
       targetUserID: Yup.string().required('Required'),
       parentNodeID: Yup.string().required('Required'),
-      position: Yup.string().required('Required')
+      position: Yup.string().required('Required'),
+      code: Yup.string().required('Required')
     }),
     // validateOnMount: true,
     // validateOnChange: false,
-    onSubmit: async (values, { setSubmitting, errors }) => {
+    onSubmit: async (values, { setSubmitting, errors, setFieldError }) => {
       try {
         setSubmitting(true);
 
@@ -267,7 +269,8 @@ function InternalPage() {
           data: {
             parentNodeID: values.parentNodeID,
             position: values.position,
-            targetUserID: values.targetUserID
+            targetUserID: values.targetUserID,
+            code: values.code
           }
         });
         toast.success('Created Successfully', {
@@ -280,24 +283,34 @@ function InternalPage() {
           progress: undefined,
           theme: 'light'
         });
+        document.getElementById('createChildModal').close();
         // reload
         getTreeStructure();
         fetchUsers();
         getNetworkNode();
       } catch (error) {
-        toast.error('Something went wrong', {
-          position: 'top-right',
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: 'light'
-        });
+        let message = error.response.data.message;
+
+        if (message === 'invalid_code') {
+          setFieldError(
+            'code',
+            `The coupon code you entered is not valid. Please double-check the code and try again.`
+          );
+        } else {
+          toast.error('Something went wrong', {
+            position: 'top-right',
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: 'light'
+          });
+          document.getElementById('createChildModal').close();
+        }
       } finally {
         setSubmitting(false);
-        document.getElementById('createChildModal').close();
       }
     }
   };
@@ -367,9 +380,6 @@ function InternalPage() {
                           let data = JSON.parse(node.list_ParentsOfParents);
 
                           // console.log({ node });
-
-                          console.log(`${userDetails.userId} - ${fullName}`);
-                          console.log({ list_ParentsOfParents: data });
 
                           let foundData = {};
 
@@ -529,7 +539,7 @@ function InternalPage() {
                   <div className="divider">Placement Information</div>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
                     <InputText
-                      // icons={mdiEmailCheckOutline}
+                      icons={mdiAccount}
                       disabled
                       label="Placement Name"
                       name="parentNodeName"
@@ -579,6 +589,18 @@ function InternalPage() {
                       affectedInputValue="id"
                     />
                   </div>
+                  <div className="divider">Code Coupon</div>
+                  <InputText
+                    // icons={mdiEmailCheckOutline}
+
+                    label="Enter Code"
+                    name="code"
+                    type="text"
+                    placeholder=""
+                    value={values.code}
+
+                    // onChange={handleEmailChange}
+                  />
                   <button
                     type="submit"
                     className="btn mt-2 justify-end  btn-primary float-right"
