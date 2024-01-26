@@ -249,7 +249,21 @@ function Register() {
     },
     validationSchema: Yup.object({
       formId: Yup.string().required('Required'),
-      // userName: Yup.string().required('Required'),
+      email: Yup.string().email('Invalid email address').required('Required'),
+      userName: Yup.string().required('Required'),
+      password: Yup.string()
+        .min(8, 'Minimun of 8 character(s)')
+        .required('Required field'),
+      lastName: Yup.string().required('Required'),
+      firstName: Yup.string().required('Required'),
+      middleName: Yup.string().required('Required'),
+      address: Yup.string().required('Required'),
+      birthday: Yup.date().required('Required'),
+      age: Yup.number().required('Required'),
+      civilStatus: Yup.string().required('Required'),
+      mobileNumber: Yup.number().required('Required'),
+      // telephoneNumber: Yup.number().required('Required'),
+      beneficiaryRelationship: Yup.string().required('Required'),
       // firstName: Yup.string().required('Required'),
       // middleName: Yup.string().required('Required'),
       // lastName: Yup.string().required('Required'),
@@ -639,7 +653,7 @@ function Register() {
                               value={values.beneficiaryRelationship}
                               onBlur={handleBlur} // This apparently updates `touched`?
                             />
-                            <InputText
+                            {/* <InputText
                               icons={mdiAccount}
                               label="Age"
                               name="age"
@@ -647,7 +661,7 @@ function Register() {
                               placeholder=""
                               value={values.age}
                               onBlur={handleBlur} // This apparently updates `touched`?
-                            />
+                            /> */}
                           </div>
 
                           {/* <button

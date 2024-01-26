@@ -384,7 +384,6 @@ function CodeGenerator() {
             title="Code Generator"
             topMargin="mt-2"
             TopSideButtons={TopSideButtons()}>
-            {/* Invoice list in table format loaded constant */}
             <div className="overflow-x-auto w-full">
               <div className="flex flex-wrap">
                 <div className="w-full">
