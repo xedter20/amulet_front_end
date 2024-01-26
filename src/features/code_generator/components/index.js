@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import TitleCard from '../../../components/Cards/TitleCard';
 import { showNotification } from '../../common/headerSlice';
@@ -17,30 +17,54 @@ import ViewColumnsIcon from '@heroicons/react/24/outline/EyeIcon';
 import PlusCircleIcon from '@heroicons/react/24/outline/PlusCircleIcon';
 import TrashIcon from '@heroicons/react/24/outline/InboxArrowDownIcon';
 import { NavLink, Routes, Link, useLocation } from 'react-router-dom';
-const BILLS = [
+
+import { CompactTable } from '@table-library/react-table-library/compact';
+
+import { useReactToPrint } from 'react-to-print';
+
+import QRCode from 'react-qr-code';
+
+const nodes = [
   {
-    invoiceNo: '#4567',
-    amount: '23,989',
-    description: 'Product usages',
-    status: 'Pending',
-    generatedOn: moment(new Date())
-      .add(-30 * 1, 'days')
-      .format('DD MMM YYYY'),
-    paidOn: '-'
+    id: '0',
+    name: 'Shopping List',
+    deadline: new Date(2020, 1, 15),
+    type: 'TASK',
+    isComplete: true,
+    nodes: 3
   }
+];
+
+const COLUMNS = [
+  { label: 'Task', renderCell: item => item.name },
+  {
+    label: 'Deadline',
+    renderCell: item =>
+      item.deadline.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+  },
+  { label: 'Type', renderCell: item => item.type },
+  {
+    label: 'Complete',
+    renderCell: item => item.isComplete.toString()
+  },
+  { label: 'Tasks', renderCell: item => item.nodes }
 ];
 
 const getStatus = status => {
   if (status === 'AVAILABLE')
     return (
-      <div className="badge badge-outline text-amber-700 font-bold">
+      <div className="badge badge-outline text-green-600 font-bold">
         <i class="fa-solid fa-user-check mr-2"></i>
         {status}
       </div>
     );
   if (status === 'USED')
     return (
-      <div className="badge badge-outline text-amber-700 font-bold">
+      <div className="badge badge-outline text-red-600 font-bold">
         <i class="fa-solid fa-user-slash mr-2"></i>
 
         {status}
@@ -48,50 +72,72 @@ const getStatus = status => {
     );
   else return <div className="badge badge-ghost">{status}</div>;
 };
-const codeTableComponent = ({ data, appSettings }) => {
+const CodeTableComponent = ({ data, appSettings, componentPDF }) => {
   let { codeTypeList, packageList } = appSettings;
 
   return (
-    <table className="table w-full">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Type</th>
-          <th>Code</th>
-          <th>Amulet Package Type</th>
-          <th>Date Created</th>
-          <th>Approval Date</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((code, k) => {
-          let pt = packageList.find(p => {
-            return p.name === code.packageType;
-          });
-          return (
-            <tr key={k}>
-              <td>{k + 1}</td>
-              <td>
-                <span className="text-yellow-800"> {code.type}</span>
-              </td>
-              <td>
-                <span className="font-bold"> {code.name}</span>
-              </td>
-              <td>{pt && pt.displayName}</td>
-              <td>{format(code.dateTimeAdded, 'MMM dd, yyyy hh:mm:ss a')}</td>
-
-              <td>
-                {code.dateTimeApproved
-                  ? format(code.dateTimeApproved, 'MMM dd, yyyy hh:mm:ss a')
-                  : 'N/A'}
-              </td>
-              <td>{getStatus(code.status)}</td>
+    <div>
+      <div ref={componentPDF} style={{ width: '100%' }}>
+        <table className="table w-full">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>QR Code</th>
+              <th>Type</th>
+              <th>Code</th>
+              <th>Amulet Package Type</th>
+              <th>Date Created</th>
+              <th>Approval Date</th>
+              <th>Status</th>
             </tr>
-          );
-        })}
-      </tbody>
-    </table>
+          </thead>
+          <tbody>
+            {data.map((code, k) => {
+              let pt = packageList.find(p => {
+                return p.name === code.packageType;
+              });
+              return (
+                <tr key={k}>
+                  <td>{k + 1}</td>
+                  <td>
+                    <div className="mask  w-12 h-12">
+                      {code.name && (
+                        <QRCode
+                          value={code.name}
+                          style={{
+                            height: 'auto',
+                            maxWidth: '100%',
+                            width: '100%'
+                          }}
+                        />
+                      )}
+                      ,
+                    </div>
+                  </td>
+                  <td>
+                    <span className="text-yellow-800"> {code.type}</span>
+                  </td>
+                  <td>
+                    <span className="font-bold"> {code.name}</span>
+                  </td>
+                  <td>{pt && pt.displayName}</td>
+                  <td>
+                    {format(code.dateTimeAdded, 'MMM dd, yyyy hh:mm:ss a')}
+                  </td>
+
+                  <td>
+                    {code.dateTimeApproved
+                      ? format(code.dateTimeApproved, 'MMM dd, yyyy hh:mm:ss a')
+                      : 'N/A'}
+                  </td>
+                  <td>{getStatus(code.status)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 
@@ -210,26 +256,7 @@ const PendingCodeBundleTableComponent = ({
   );
 };
 
-const TopSideButtons = () => {
-  const dispatch = useDispatch();
-
-  const openAddNewModal = () => {
-    document.getElementById('createCodeModal').showModal();
-  };
-
-  return (
-    <div className="inline-block float-right">
-      <button className="btn  " onClick={openAddNewModal}>
-        <i className="fa-solid fa-circle-plus mr-1"></i>
-        Create Code Bundle
-      </button>
-    </div>
-  );
-};
-
 function CodeGenerator() {
-  const [bills, setBills] = useState(BILLS);
-
   const appSettings = useSelector(state => state.appSettings);
 
   const [openTab, setOpenTab] = useState(1);
@@ -264,6 +291,38 @@ function CodeGenerator() {
   useEffect(() => {
     fetchPendingCodes();
   }, []);
+
+  const componentPDF = useRef();
+  const generatePDF = useReactToPrint({
+    content: () => componentPDF.current,
+    documentTitle: 'Userdata'
+    // onAfterPrint: () => alert('Data saved in PDF')
+  });
+
+  const TopSideButtons = () => {
+    const dispatch = useDispatch();
+
+    const openAddNewModal = () => {
+      document.getElementById('createCodeModal').showModal();
+    };
+
+    return (
+      <div className="inline-block float-right">
+        <button className="btn btn-sm mt-2 mr-2" onClick={openAddNewModal}>
+          <i className="fa-solid fa-circle-plus mr-1 "></i>
+          Create
+        </button>
+
+        <button
+          className="btn btn-sm mt-2 justify-end 
+           float-right"
+          onClick={generatePDF}>
+          <i class="fa-solid fa-print text-warning"></i>
+          Print
+        </button>
+      </div>
+    );
+  };
 
   const formikConfig = {
     initialValues: {
@@ -338,7 +397,7 @@ function CodeGenerator() {
                           'text-xs font-bold uppercase px-5 py-3 shadow-sm rounded block leading-normal ' +
                           (openTab === 1
                             ? 'text-white bg-slate-600 rounded-lg shadow-lg'
-                            : 'text-green-700 bg-slate-200 shadow-md')
+                            : 'text-slate-700 bg-slate-200 shadow-md')
                         }
                         onClick={e => {
                           e.preventDefault();
@@ -378,11 +437,16 @@ function CodeGenerator() {
                           className={openTab === 1 ? 'block' : 'hidden'}
                           id="link1">
                           <div className="w-full">
-                            {' '}
-                            {codeTableComponent({
-                              data: codeList,
-                              appSettings
-                            })}
+                            {/* <CompactTable columns={COLUMNS} />; */}
+
+                            <CodeTableComponent
+                              data={codeList}
+                              appSettings={appSettings}
+                              setPendingCodesInModalView={
+                                setPendingCodesInModalView
+                              }
+                              componentPDF={componentPDF}
+                            />
                           </div>
                         </div>
                         <div
@@ -514,10 +578,11 @@ function CodeGenerator() {
               <h3 className="font-bold text-lg">List of Code(s)</h3>
               <div className="divider"></div>
 
-              {codeTableComponent({
-                data: pendingCodeListModalView,
-                appSettings
-              })}
+              <CodeTableComponent
+                data={pendingCodeList}
+                appSettings={appSettings}
+                setPendingCodesInModalView={setPendingCodesInModalView}
+              />
             </div>
           </dialog>
         </div>

@@ -435,13 +435,13 @@ function Register() {
                       }}
                       onTabChange={handleTabChange}
                       stepSize="xs"
-                      color="#22c55e"
+                      color="#334155"
                       finishButtonText="Submit"
                       finishButtonTemplate={handleComplete => (
                         <div>
                           <button
                             type="button"
-                            className="btn mt-2 justify-end  btn-primary float-right"
+                            className="btn mt-2 justify-end  btn-neutral float-right"
                             onClick={() => {
                               handleComplete();
                             }}>
@@ -465,7 +465,7 @@ function Register() {
                       nextButtonTemplate={(handleNext, currentIndex) => (
                         <div>
                           <button
-                            className="btn mt-2 justify-end  btn-primary float-right"
+                            className="btn mt-2 justify-end  btn-neutral float-right"
                             onClick={() => {
                               validation.map(key => {
                                 setFieldTouched(key);

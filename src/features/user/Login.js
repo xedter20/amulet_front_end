@@ -85,7 +85,10 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-300 flex items-center">
+    <div
+      className={`min-h-screen bg-gray-300 flex items-center
+    bg-loginBackdrop
+    `}>
       <ToastContainer />
       <div className="card mx-auto w-full max-w-2xl  shadow-xl">
         <div
