@@ -49,7 +49,7 @@ const statsData = [
 function Dashboard() {
   const dispatch = useDispatch();
   const [isLoaded, setIsLoaded] = useState([]);
-  const [dashboardData, setDashboardData] = useState(statsData);
+  const [dashboardData, setDashboardData] = useState({});
   const getDashboardStats = async () => {
     let res = await axios({
       method: 'POST',
@@ -58,22 +58,8 @@ function Dashboard() {
 
     let data = res.data.data;
 
-    let updatedValue = dashboardData.reduce((acc, current) => {
-      if (current.key === 'totalIncome') {
-        return [
-          ...acc,
-          {
-            ...current,
-            value: `PHP ${data.totalIncome}`
-          }
-        ];
-      } else {
-        return [...acc];
-      }
-    }, []);
-
     setIsLoaded(true);
-    setDashboardData(updatedValue);
+    setDashboardData(data);
   };
   useEffect(() => {
     getDashboardStats();
@@ -110,14 +96,17 @@ function Dashboard() {
       {/** ---------------------- Different stats content 2 ------------------------- */}
 
       <div className="grid lg:grid-cols-2 mt-10 grid-cols-1 gap-6">
-        <AmountStats />
+        <AmountStats dashboardData={dashboardData} />
         {/* <PageStats /> */}
       </div>
 
       {/** ---------------------- User source channels table  ------------------------- */}
 
       <div className="grid lg:grid-cols-2 mt-4 grid-cols-1 gap-6">
-        <UserChannels />
+        <UserChannels
+          dashboardData={dashboardData}
+          getDashboardStats={getDashboardStats}
+        />
         {/* <DoughnutChart /> */}
       </div>
     </>
