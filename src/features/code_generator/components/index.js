@@ -33,10 +33,19 @@ const BILLS = [
 const getStatus = status => {
   if (status === 'AVAILABLE')
     return (
-      <div className="badge badge-info text-white font-bold">{status}</div>
+      <div className="badge badge-outline text-amber-700 font-bold">
+        <i class="fa-solid fa-user-check mr-2"></i>
+        {status}
+      </div>
     );
   if (status === 'USED')
-    return <div className="badge badge-warning text-white">{status}</div>;
+    return (
+      <div className="badge badge-outline text-amber-700 font-bold">
+        <i class="fa-solid fa-user-slash mr-2"></i>
+
+        {status}
+      </div>
+    );
   else return <div className="badge badge-ghost">{status}</div>;
 };
 const codeTableComponent = ({ data, appSettings }) => {
@@ -101,7 +110,6 @@ const PendingCodeBundleTableComponent = ({
       return bundleId === b.bundleId;
     });
 
-    console.log(selectedBundle.codeList);
     setPendingCodesInModalView(selectedBundle.codeList);
   };
 
@@ -329,8 +337,8 @@ function CodeGenerator() {
                         className={
                           'text-xs font-bold uppercase px-5 py-3 shadow-sm rounded block leading-normal ' +
                           (openTab === 1
-                            ? 'text-white bg-green-500 rounded-lg shadow-lg'
-                            : 'text-green-500 bg-green-50 shadow-md')
+                            ? 'text-white bg-slate-600 rounded-lg shadow-lg'
+                            : 'text-green-700 bg-slate-200 shadow-md')
                         }
                         onClick={e => {
                           e.preventDefault();
@@ -348,8 +356,8 @@ function CodeGenerator() {
                         className={
                           'text-xs font-bold uppercase px-5 py-3 shadow-sm rounded block leading-normal ' +
                           (openTab === 2
-                            ? 'text-white bg-green-500 rounded-lg shadow-lg'
-                            : 'text-green-500 bg-green-50 shadow-md')
+                            ? 'text-white bg-slate-500 rounded-lg shadow-lg'
+                            : 'text-slate-700 bg-slate-200 shadow-md')
                         }
                         onClick={e => {
                           e.preventDefault();
@@ -482,7 +490,7 @@ function CodeGenerator() {
                       />
                       <button
                         type="submit"
-                        className="btn mt-2 justify-end  btn-primary float-right"
+                        className="btn mt-2 justify-end  btn-neutral float-right"
                         disabled={isSubmitting}>
                         Submit
                       </button>

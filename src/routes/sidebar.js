@@ -1,4 +1,5 @@
 /** Icons are imported separatly to reduce build time */
+import { jwtDecode } from 'jwt-decode';
 import checkAuth from '../app/auth';
 import Squares2X2Icon from '@heroicons/react/24/outline/Squares2X2Icon';
 import QrCodeIcon from '@heroicons/react/24/outline/QrCodeIcon';
@@ -8,10 +9,11 @@ const iconClasses = `h-6 w-6`;
 const submenuIconClasses = `h-5 w-5`;
 
 const token = checkAuth();
+const decoded = jwtDecode(token);
 
 let routes = [];
 
-if (token) {
+if (decoded && decoded.role === 'ADMIN') {
   routes = [
     {
       path: '/app/dashboard',
@@ -26,7 +28,7 @@ if (token) {
     {
       path: '/app/network_tree',
       icon: <PresentationChartLineIcon className={iconClasses} />,
-      name: 'Network Tree'
+      name: 'Network'
     },
     {
       path: '/app/code_generator',
@@ -40,6 +42,11 @@ if (token) {
       path: '/app/dashboard',
       icon: <Squares2X2Icon className={iconClasses} />,
       name: 'Dashboard'
+    },
+    {
+      path: '/app/network_tree',
+      icon: <PresentationChartLineIcon className={iconClasses} />,
+      name: 'Network Tree'
     }
   ];
 }

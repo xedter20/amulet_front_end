@@ -16,6 +16,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import TitleCard from '../../components/Cards/TitleCard';
 import { mdiAccount } from '@mdi/js';
+import { format, formatDistance, formatRelative, subDays } from 'date-fns';
 const renderNodeWithCustomEvents = ({
   nodeDatum,
   toggleNode,
@@ -26,18 +27,18 @@ const renderNodeWithCustomEvents = ({
   let matchCount = nodeDatum.matchingPairs.filter(({ status }) => {
     return status === 'PENDING';
   }).length;
-  const nodeSize = { x: '15%', y: '50%' };
+  const nodeSize = { x: '12%', y: '20%' };
   const foreignObjectProps = {
     width: nodeSize.x,
     height: nodeSize.y,
-    x: -70,
+    x: -60,
     y: 40
   };
   return (
     <g>
       <circle
-        stroke="#a21caf"
-        fill="#f0abfc"
+        // stroke="#a21caf"
+        fill="#334155"
         r="35"
         onClick={async () => {
           handleNodeClick(nodeDatum);
@@ -59,20 +60,23 @@ const renderNodeWithCustomEvents = ({
         }}
       />
       <text
-        fill="#a21caf"
+        fill="#94a3b8"
         fontWeight="bold"
         strokeWidth="0"
-        x="-3"
+        x="-8"
         y="5"
         onClick={toggleNode}
         fontSize="12"
         fontWeightt="10">
-        {nodeDatum.INDEX_PLACEMENT}
+        {nodeDatum.name
+          .match(/\b(\w)/g)
+          .join('')
+          .toUpperCase()}
       </text>
 
       <foreignObject {...foreignObjectProps}>
         <div className="alert alert shadow-lg bg-white">
-          <h6 className="text-xs font-normal text-gray-800 text-center h6">
+          <h6 className="text-xs font-normal text-gray-800 text-center h6 ml-2">
             {nodeDatum.name}
           </h6>
           {/* <hr /> */}
@@ -353,20 +357,48 @@ function InternalPage() {
       }) => {
         console.log(errors);
         return (
-          <div ref={treeContainerRef} style={{ height: '100vh' }}>
-            <div className="">
+          <div>
+            <div className="p-2 ">
+              <ul className="menu bg-white lg:menu-horizontal rounded-box shadow-md">
+                <li>
+                  <a>
+                    <i class="fa-solid fa-network-wired"></i>
+                    Network
+                    {/* <span className="badge badge-sm">99+</span> */}
+                  </a>
+                </li>
+                <li>
+                  <a>
+                    <i class="fa-solid fa-angles-left"></i>
+                    Left
+                    {/* <span className="badge badge-sm badge-warning">NEW</span> */}
+                  </a>
+                </li>
+                <li>
+                  <a>
+                    <i class="fa-solid fa-angles-right"></i>
+                    Right
+                    {/* <span className="badge badge-sm badge-warning">NEW</span> */}
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div
+              ref={treeContainerRef}
+              style={{ height: '100vh' }}
+              className="">
+              {/* <div className="">
               {isLoaded && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <TitleCard key={'key'} title={'Network'} topMargin={'mt-2'}>
                     <table className="table table-xs">
-                      {/* head */}
                       <thead>
                         <tr>
                           <th></th>
                           <th>Name</th>
                           <th>Position</th>
                           <th>Points</th>
-                          {/* <th>Date/Time Added</th> */}
+                          <th>Date</th>
 
                           <th>Action</th>
                         </tr>
@@ -375,11 +407,7 @@ function InternalPage() {
                         {networkNode.map((node, index) => {
                           let fullName = `${node.childDetails.firstName} ${node.childDetails.lastName}`;
 
-                          let previousNode = networkNode[index - 1];
-
                           let data = JSON.parse(node.list_ParentsOfParents);
-
-                          // console.log({ node });
 
                           let foundData = {};
 
@@ -396,21 +424,21 @@ function InternalPage() {
                             });
                           }
 
-                          let isButtonDisabled =
-                            foundData &&
-                            foundData.isViewed &&
-                            foundData.date_viewed;
-
                           return (
                             <tr>
                               <th></th>
                               <th>{fullName}</th>
                               <th>{foundData && foundData.position}</th>
-                              <th>{node.points.low}</th>
-
+                              <th>{node.points}</th>
+                              <td>
+                                {format(
+                                  node.date_created,
+                                  'MMM dd, yyyy hh:mm:ss a'
+                                )}
+                              </td>
                               <th>
                                 <button
-                                  // disabled={isButtonDisabled}
+                                  disabled={node.isDisabledInUI}
                                   className="btn btn-outline btn-sm ml-2 btn-success"
                                   onClick={async () => {
                                     let res = await axios({
@@ -425,7 +453,6 @@ function InternalPage() {
                                     await fetchRightFloaterData();
                                   }}>
                                   Receive
-                                  {/* <CheckCircleIcon className="h-5 w-5 text-green-500" /> */}
                                 </button>
                               </th>
                             </tr>
@@ -439,7 +466,6 @@ function InternalPage() {
                       Left Floater
                     </h6>
                     <table className="table table-xs">
-                      {/* head */}
                       <thead>
                         <tr>
                           <th></th>
@@ -472,7 +498,6 @@ function InternalPage() {
                       Right Floater
                     </h6>
                     <table className="table table-xs">
-                      {/* head */}
                       <thead>
                         <tr>
                           <th></th>
@@ -500,221 +525,133 @@ function InternalPage() {
                   </div>
                 </div>
               )}
-            </div>
-            {isLoaded && (
-              <Tree
-                rootNodeClassName="node__root"
-                branchNodeClassName="node__branch"
-                leafNodeClassName="node__leaf"
-                data={treeStucture}
-                orientation="vertical"
-                pathFunc="step"
-                translate={treeTranslate}
-                collapsible={false}
-                separation={{
-                  siblings: 2,
-                  nonSiblings: 2
-                }}
-                renderCustomNodeElement={rd3tProps =>
-                  renderNodeWithCustomEvents({
-                    ...rd3tProps,
-                    handleNodeClick,
-                    setFieldValue,
-                    setAvailablePosition
-                  })
-                }
-              />
-            )}
-            <dialog id="createChildModal" className="modal">
-              <div className="modal-box w-11/12 max-w-3xl">
-                <form method="dialog">
-                  {/* if there is a button in form, it will close the modal */}
-                  <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                    ✕
-                  </button>
-                </form>
-                <h3 className="font-bold text-lg">Add New Branch</h3>
+            </div> */}
+              {isLoaded && (
+                <Tree
+                  rootNodeClassName="node__root"
+                  branchNodeClassName="node__branch"
+                  leafNodeClassName="node__leaf"
+                  data={treeStucture}
+                  orientation="vertical"
+                  pathFunc="step"
+                  translate={treeTranslate}
+                  collapsible={false}
+                  separation={{
+                    siblings: 2,
+                    nonSiblings: 2
+                  }}
+                  renderCustomNodeElement={rd3tProps =>
+                    renderNodeWithCustomEvents({
+                      ...rd3tProps,
+                      handleNodeClick,
+                      setFieldValue,
+                      setAvailablePosition
+                    })
+                  }
+                />
+              )}
+              <dialog id="createChildModal" className="modal">
+                <div className="modal-box w-11/12 max-w-3xl">
+                  <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                      ✕
+                    </button>
+                  </form>
+                  <h3 className="font-bold text-lg">Add New Branch</h3>
 
-                <Form>
-                  <div className="divider">Placement Information</div>
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                    <InputText
-                      icons={mdiAccount}
-                      disabled
-                      label="Placement Name"
-                      name="parentNodeName"
-                      type="text"
-                      placeholder=""
-                      value={values.parentNodeName}
+                  <Form>
+                    <div className="divider">Placement Information</div>
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                      <InputText
+                        icons={mdiAccount}
+                        disabled
+                        label="Placement Name"
+                        name="parentNodeName"
+                        type="text"
+                        placeholder=""
+                        value={values.parentNodeName}
 
-                      // onChange={handleEmailChange}
-                    />
+                        // onChange={handleEmailChange}
+                      />
+                      <InputText
+                        // icons={mdiEmailCheckOutline}
+                        disabled
+                        label="Placement ID"
+                        name="parentNode_Id"
+                        type="text"
+                        placeholder=""
+                        value={values.parentNodeEmail}
+
+                        // onChange={handleEmailChange}
+                      />
+                    </div>
+                    <div className="divider">Newly Registered Downlines</div>
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
+                      <Dropdown
+                        // icons={mdiAccount}
+                        label="Name"
+                        name="targetUserID"
+                        type="text"
+                        placeholder=""
+                        value={values.targetUserID}
+                        setFieldValue={setFieldValue}
+                        onBlur={handleBlur}
+                        options={users}
+                        affectedInput="targetUserID"
+                        affectedInputValue="id"
+                      />
+                      <Dropdown
+                        label="Position"
+                        name="position"
+                        type="text"
+                        placeholder=""
+                        value={values.position}
+                        setFieldValue={setFieldValue}
+                        onBlur={handleBlur}
+                        options={availablePosition}
+                        affectedInput="position"
+                        affectedInputValue="id"
+                      />
+                    </div>
+                    <div className="divider">Code Coupon</div>
                     <InputText
                       // icons={mdiEmailCheckOutline}
-                      disabled
-                      label="Placement ID"
-                      name="parentNode_Id"
+
+                      label="Enter Code"
+                      name="code"
                       type="text"
                       placeholder=""
-                      value={values.parentNodeEmail}
+                      value={values.code}
 
                       // onChange={handleEmailChange}
                     />
-                  </div>
-                  <div className="divider">Newly Registered Downlines</div>
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                    <Dropdown
-                      // icons={mdiAccount}
-                      label="Name"
-                      name="targetUserID"
-                      type="text"
-                      placeholder=""
-                      value={values.targetUserID}
-                      setFieldValue={setFieldValue}
-                      onBlur={handleBlur}
-                      options={users}
-                      affectedInput="targetUserID"
-                      affectedInputValue="id"
-                    />
-                    <Dropdown
-                      label="Position"
-                      name="position"
-                      type="text"
-                      placeholder=""
-                      value={values.position}
-                      setFieldValue={setFieldValue}
-                      onBlur={handleBlur}
-                      options={availablePosition}
-                      affectedInput="position"
-                      affectedInputValue="id"
-                    />
-                  </div>
-                  <div className="divider">Code Coupon</div>
-                  <InputText
-                    // icons={mdiEmailCheckOutline}
+                    <button
+                      type="submit"
+                      className="btn mt-2 justify-end  btn-neutral float-right"
+                      disabled={isSubmitting}>
+                      Submit
+                    </button>
+                  </Form>
+                </div>
+              </dialog>
+              <dialog id="viewModal" className="modal">
+                <div className="modal-box w-11/12 max-w-4xl">
+                  <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                      ✕
+                    </button>
+                  </form>
+                  <h3 className="font-bold text-lg">Details</h3>
 
-                    label="Enter Code"
-                    name="code"
-                    type="text"
-                    placeholder=""
-                    value={values.code}
-
-                    // onChange={handleEmailChange}
-                  />
-                  <button
-                    type="submit"
-                    className="btn mt-2 justify-end  btn-primary float-right"
-                    disabled={isSubmitting}>
-                    Submit
-                  </button>
-                </Form>
-              </div>
-            </dialog>
-            <dialog id="viewModal" className="modal">
-              <div className="modal-box w-11/12 max-w-4xl">
-                <form method="dialog">
-                  {/* if there is a button in form, it will close the modal */}
-                  <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                    ✕
-                  </button>
-                </form>
-                <h3 className="font-bold text-lg">Details</h3>
-
-                <Form>
-                  <div className="overflow-x-auto">
-                    <table className="table">
-                      {/* head */}
-                      <thead>
-                        <tr>
-                          <th>Level</th>
-                          <th>User 1</th>
-                          <th>User 2</th>
-                          <th>Amount</th>
-                          <th>Status</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {/* row 1 */}
-                        {pairMatchedUsers.map(data => {
-                          let user = data.users;
-                          let depthLevel = data.targetDepthLevel.low;
-
-                          let left = user[0];
-                          let right = user[1];
-
-                          let ID = data.ID;
-                          let status = data.status;
-
-                          return (
-                            <tr>
-                              <td>{depthLevel + 1}</td>
-                              <td>
-                                <div className="flex items-center gap-3">
-                                  <div className="avatar">
-                                    {avatarComponent()}
-                                  </div>
-                                  <div>
-                                    <div className="font-bold">
-                                      {left.firstName} {left.lastName}
-                                    </div>
-                                    <div className="text-sm opacity-50">
-                                      {left.email}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td>
-                                <div className="flex items-center gap-3">
-                                  <div className="avatar">
-                                    {avatarComponent()}
-                                  </div>
-                                  <div>
-                                    <div className="font-bold">
-                                      {right.firstName} {right.lastName}
-                                    </div>
-                                    <div className="text-sm opacity-50">
-                                      {right.email}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td>Php 1000</td>
-                              <td>
-                                <div
-                                  className={`text-white badge    ${
-                                    status === 'COMPLETED'
-                                      ? `badge-success`
-                                      : 'badge-warning'
-                                  } gap-2`}>
-                                  {status}
-                                </div>
-                              </td>
-                              <th>
-                                {status !== 'COMPLETED' ? (
-                                  <button
-                                    className="btn btn-outline btn-sm ml-2 btn-success"
-                                    onClick={async () =>
-                                      await approvedTransaction({ ID })
-                                    }>
-                                    Approve
-                                    <CheckCircleIcon className="h-1 w-1 text-green-500" />
-                                  </button>
-                                ) : (
-                                  <div className="indicator"></div>
-                                )}
-                              </th>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                      {/* foot */}
-                    </table>
-                  </div>
-                </Form>
-              </div>
-            </dialog>
-            <ToastContainer />
+                  <Form>
+                    <div className="overflow-x-auto"></div>
+                  </Form>
+                </div>
+              </dialog>
+              <ToastContainer />
+            </div>
           </div>
         );
       }}

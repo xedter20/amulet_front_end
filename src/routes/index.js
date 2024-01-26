@@ -1,7 +1,9 @@
 // All components mapping with path for internal routes
 
 import { lazy } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import checkAuth from '../app/auth';
+
 const Dashboard = lazy(() => import('../pages/protected/Dashboard'));
 const NetworkTree = lazy(() => import('../pages/protected/NetworkTree'));
 const Welcome = lazy(() => import('../pages/protected/Welcome'));
@@ -17,6 +19,7 @@ const CodeGenerator = lazy(() => import('../pages/protected/CodeGenerator'));
 const ProfileSettings = lazy(() =>
   import('../pages/protected/ProfileSettings')
 );
+
 const GettingStarted = lazy(() => import('../pages/GettingStarted'));
 const DocFeatures = lazy(() => import('../pages/DocFeatures'));
 const DocComponents = lazy(() => import('../pages/DocComponents'));
@@ -24,8 +27,10 @@ const AddMember = lazy(() => import('../pages/protected/Leads'));
 
 const token = checkAuth();
 
+const decoded = jwtDecode(token);
+
 let routes = [];
-if (token) {
+if (decoded && decoded.role === 'ADMIN') {
   routes = [
     {
       path: '/dashboard', // the url
@@ -120,6 +125,10 @@ if (token) {
     {
       path: '/blank',
       component: Blank
+    },
+    {
+      path: '/network_tree', // the url
+      component: NetworkTree // view rendered
     }
   ];
 }

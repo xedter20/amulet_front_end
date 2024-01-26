@@ -51,7 +51,7 @@ function Header() {
     // navbar fixed  flex-none justify-between bg-base-300  z-10 shadow-md
 
     <>
-      <div className="navbar sticky top-0 bg-base-100  z-10 shadow-md ">
+      <div className="navbar sticky top-0 bg-base-100  z-10 shadow-md bg-slate-900 text-slate-300">
         {/* Menu toogle for mobile view or small screen */}
         <div className="flex-1">
           <label
@@ -88,7 +88,7 @@ function Header() {
             <div className="indicator">
               <BellIcon className="h-6 w-6" />
               {noOfNotifications > 0 ? (
-                <span className="indicator-item badge badge-secondary badge-sm">
+                <span className="indicator-item badge badge-slate-200 badge-sm">
                   {noOfNotifications}
                 </span>
               ) : null}
@@ -98,18 +98,22 @@ function Header() {
           {/* Profile icon, opening menu on click */}
           <div className="dropdown dropdown-end ml-4">
             <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
-              <div className="w-10 rounded-full">
-                <img
-                  className="mask mask-squircle w-10"
-                  src="/user.png"
-                  alt="Logo"
-                />
-                D
+              <div className="avatar">
+                <div className="">
+                  <div className="mask mask-circle w-10 h-10">
+                    <img
+                      src={
+                        'https://img.freepik.com/premium-vector/young-smiling-man-avatar-man-with-brown-beard-mustache-hair-wearing-yellow-sweater-sweatshirt-3d-vector-people-character-illustration-cartoon-minimal-style_365941-860.jpg?w=740'
+                      }
+                      alt="Avatar"
+                    />
+                  </div>
+                </div>
               </div>
             </label>
             <ul
               tabIndex={0}
-              className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+              className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 text-slate-900 font-bold">
               <li className="justify-between">
                 <Link to={'/app/settings-profile'}>My Profile</Link>
               </li>

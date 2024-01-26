@@ -85,7 +85,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 flex items-center">
+    <div className="min-h-screen bg-gray-300 flex items-center">
       <ToastContainer />
       <div className="card mx-auto w-full max-w-2xl  shadow-xl">
         <div
@@ -93,8 +93,19 @@ function Login() {
 
          ">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-            <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-              Login
+            <div className="shadow-l">
+              {' '}
+              <img
+                className="mask mask-squircle w-20 h-20 mx-auto shadow-lg"
+                src="/system_logo.jpg"
+                alt="Amulet"
+              />
+            </div>
+
+            <h1
+              className="text-xl font-bold leading-tight tracking-tight
+             text-gray-900 md:text-2xl dark:text-white text-center">
+              Sign in to your account
             </h1>
             <Formik {...formikConfig}>
               {({
@@ -129,10 +140,10 @@ function Login() {
                     <button
                       type="submit"
                       className={
-                        'btn mt-2 w-full btn-primary' +
+                        'btn mt-2 w-full btn-neutral' +
                         (loading ? ' loading' : '')
                       }>
-                      Login
+                      Sign in
                     </button>
 
                     {/* <div className="text-sm font-light text-gray-500 dark:text-gray-400 mt-4">
