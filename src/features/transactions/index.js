@@ -191,10 +191,6 @@ function Transactions() {
                             <ViewColumnsIcon className="h-4 w-4 text-blue-500" />
                           </button>
                         </Link>{' '}
-                        <button className="btn btn-sm ml-2">
-                          Delete
-                          <TrashIcon className="h-4 w-4 text-red-500" />
-                        </button>
                       </div>
                     </td>
                   </tr>
